@@ -1,4 +1,12 @@
-FROM nginx:1.15.8-alpine
-LABEL version="1.0.0"
-ENV REFRESHED_AT=2019-12-02-1
-COPY index.html /usr/share/nginx/html/index.html
+ARG CADDY_VERSION=2.6
+FROM caddy:${CADDY_VERSION}-builder AS builder
+
+RUN xcaddy build \
+    --with github.com/caddy-dns/cloudflare \
+    --with github.com/lucaslorentz/caddy-docker-proxy/plugin/v2
+
+FROM caddy:${CADDY_VERSION}-alpine
+
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+
+CMD ["caddy", "docker-proxy"]
